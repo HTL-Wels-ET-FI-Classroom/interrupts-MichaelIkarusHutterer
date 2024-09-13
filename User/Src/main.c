@@ -63,16 +63,30 @@ int main(void)
 	// There are 2 ways to print text to screen: using printf or LCD_* functions
 	LCD_DisplayStringAtLine(0, "    HTL Wels");
 	// printf Alternative
-	LCD_SetPrintPosition(1, 0);
-	printf(" Fischergasse 30");
 	LCD_SetPrintPosition(2, 0);
-	printf("   A-4600 Wels");
+	printf("   EXTI Interrupt");
 
 	LCD_SetFont(&Font8);
 	LCD_SetColors(LCD_COLOR_MAGENTA, LCD_COLOR_BLACK); // TextColor, BackColor
 	LCD_DisplayStringAtLineMode(39, "copyright xyz", CENTER_MODE);
 
 	int cnt = 0;
+
+	GPIO_InitTypeDef taster;
+	taster.Mode=GPIO_MODE_IT_RISING;
+	taster.Alternate=0;
+	taster.Pin=GPIO_PIN_0;
+	taster.Pull=GPIO_NOPULL;
+	taster.Speed=GPIO_SPEED_FAST;
+	HAL_GPIO_Init(GPIOA, &taster);
+
+	HAL_NVIC_EnableIRQ(EXTI0_IRQn);
+
+	void EXTIO_IRQHandler(void);
+	__HAL_GPIO_EXTI_CLEAR_IT(GPIO_PIN_0);
+
+
+
 	/* Infinite loop */
 	while (1)
 	{
