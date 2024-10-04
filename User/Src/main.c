@@ -25,12 +25,8 @@ enum tstates {
 } state;
 
 enum colors {
-	RED,
-	BLUE,
-	GREEN,
-	YELLOW,
-	WHITE
-}color;
+	RED, BLUE, GREEN, YELLOW, WHITE
+} color;
 /* Private define ------------------------------------------------------------*/
 
 /* Private variables ---------------------------------------------------------*/
@@ -51,11 +47,31 @@ void EXTI0_IRQHandler(void) {
 }
 
 void EXTI4_IRQHandler(void) {
-	swtich(color){
-
+	switch(color)
+	{
+		case RED:
+		LCD_SetTextColor(LCD_COLOR_RED);
+		color = BLUE;
+		break;
+		case BLUE:
+		LCD_SetTextColor(LCD_COLOR_BLUE);
+		color = GREEN;
+		break;
+		case GREEN:
+		LCD_SetTextColor(LCD_COLOR_GREEN);
+		color = YELLOW;
+		break;
+		case YELLOW:
+		LCD_SetTextColor(LCD_COLOR_YELLOW);
+		color = WHITE;
+		break;
+		case WHITE:
+		LCD_SetTextColor(LCD_COLOR_WHITE);
+		color = RED;
+		break;
+		default:
+			printf("color error");
 	}
-	LCD_SetTextColor(LCD_COLOR_GREEN);
-
 	__HAL_GPIO_EXTI_CLEAR_IT(GPIO_PIN_4);
 }
 /**
@@ -111,15 +127,12 @@ int main(void) {
 	taster.Pin = GPIO_PIN_4;
 	HAL_GPIO_Init(GPIOB, &taster);
 
-
 	HAL_NVIC_EnableIRQ(EXTI0_IRQn);
 	HAL_NVIC_EnableIRQ(EXTI4_IRQn);
 
-
-
-
 	LCD_SetTextColor(LCD_COLOR_BLUE);
-	state=timer1;
+	state = timer1;
+	color = RED;
 	/* Infinite loop */
 	while (1) {
 		//execute main loop every 100ms
