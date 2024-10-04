@@ -20,20 +20,48 @@
 /* Private includes ----------------------------------------------------------*/
 
 /* Private typedef -----------------------------------------------------------*/
+enum tstates {
+	timer1, timer2
+} state;
 
+enum colors {
+	RED,
+	BLUE,
+	GREEN,
+	YELLOW,
+	WHITE
+}color;
 /* Private define ------------------------------------------------------------*/
 
 /* Private variables ---------------------------------------------------------*/
 
 /* Private function prototypes -----------------------------------------------*/
 static int GetUserButtonPressed(void);
-static int GetTouchState (int *xCoord, int *yCoord);
+static int GetTouchState(int *xCoord, int *yCoord);
 
+void EXTI0_IRQHandler(void) {
+
+	if (state == timer1) {
+		state = timer2;
+	} else {
+		state = timer1;
+
+	}
+	__HAL_GPIO_EXTI_CLEAR_IT(GPIO_PIN_0);
+}
+
+void EXTI4_IRQHandler(void) {
+	swtich(color){
+
+	}
+	LCD_SetTextColor(LCD_COLOR_GREEN);
+
+	__HAL_GPIO_EXTI_CLEAR_IT(GPIO_PIN_4);
+}
 /**
  * @brief This function handles System tick timer.
  */
-void SysTick_Handler(void)
-{
+void SysTick_Handler(void) {
 	HAL_IncTick();
 }
 
@@ -41,8 +69,7 @@ void SysTick_Handler(void)
  * @brief  The application entry point.
  * @retval int
  */
-int main(void)
-{
+int main(void) {
 	/* MCU Configuration--------------------------------------------------------*/
 	/* Reset of all peripherals, Initializes the Flash interface and the Systick. */
 	HAL_Init();
@@ -54,7 +81,6 @@ int main(void)
 	TS_Init(LCD_GetXSize(), LCD_GetYSize());
 	/* touch screen calibration */
 	//	TS_Calibration();
-
 	/* Clear the LCD and display basic starter text */
 	LCD_Clear(LCD_COLOR_BLACK);
 	LCD_SetTextColor(LCD_COLOR_YELLOW);
@@ -70,44 +96,64 @@ int main(void)
 	LCD_SetColors(LCD_COLOR_MAGENTA, LCD_COLOR_BLACK); // TextColor, BackColor
 	LCD_DisplayStringAtLineMode(39, "copyright xyz", CENTER_MODE);
 
-	int cnt = 0;
+	static int cnt = 0;
+	static int cnt2 = 0;
 
 	GPIO_InitTypeDef taster;
-	taster.Mode=GPIO_MODE_IT_RISING;
-	taster.Alternate=0;
-	taster.Pin=GPIO_PIN_0;
-	taster.Pull=GPIO_NOPULL;
-	taster.Speed=GPIO_SPEED_FAST;
+	taster.Mode = GPIO_MODE_IT_RISING;
+	taster.Alternate = 0;
+	taster.Pin = GPIO_PIN_0;
+	taster.Pull = GPIO_NOPULL;
+	taster.Speed = GPIO_SPEED_FAST;
 	HAL_GPIO_Init(GPIOA, &taster);
 
+	taster.Pull = GPIO_PULLDOWN;
+	taster.Pin = GPIO_PIN_4;
+	HAL_GPIO_Init(GPIOB, &taster);
+
+
 	HAL_NVIC_EnableIRQ(EXTI0_IRQn);
-
-	void EXTIO_IRQHandler(void);
-	__HAL_GPIO_EXTI_CLEAR_IT(GPIO_PIN_0);
+	HAL_NVIC_EnableIRQ(EXTI4_IRQn);
 
 
 
+
+	LCD_SetTextColor(LCD_COLOR_BLUE);
+	state=timer1;
 	/* Infinite loop */
-	while (1)
-	{
+	while (1) {
 		//execute main loop every 100ms
 		HAL_Delay(100);
 
 		// display timer
-		cnt++;
-		LCD_SetFont(&Font20);
-		LCD_SetTextColor(LCD_COLOR_BLUE);
-		LCD_SetPrintPosition(5, 0);
-		printf("   Timer: %.1f", cnt/10.0);
 
-		// test touch interface
-		int x, y;
-		if (GetTouchState(&x, &y)) {
-			LCD_FillCircle(x, y, 5);
+		switch (state) {
+		case timer1:
+			cnt++;
+			LCD_SetFont(&Font20);
+
+			LCD_SetPrintPosition(5, 0);
+			printf("   Timer: %.1f", cnt / 10.0);
+			break;
+		case timer2:
+			cnt2++;
+			LCD_SetFont(&Font20);
+
+			LCD_SetPrintPosition(7, 0);
+			printf("   Timer: %.1f", cnt2 / 10.0);
+			break;
+		default:
+			printf("error no sir");
+			break;
 		}
 
-
 	}
+	// test touch interface
+	int x, y;
+	if (GetTouchState(&x, &y)) {
+		LCD_FillCircle(x, y, 5);
+	}
+
 }
 
 /**
@@ -125,8 +171,8 @@ static int GetUserButtonPressed(void) {
  * @param yCoord y coordinate of touch event in pixels
  * @return 1 if touch event has been detected
  */
-static int GetTouchState (int* xCoord, int* yCoord) {
-	void    BSP_TS_GetState(TS_StateTypeDef *TsState);
+static int GetTouchState(int *xCoord, int *yCoord) {
+	void BSP_TS_GetState(TS_StateTypeDef *TsState);
 	TS_StateTypeDef TsState;
 	int touchclick = 0;
 
@@ -143,5 +189,4 @@ static int GetTouchState (int* xCoord, int* yCoord) {
 
 	return touchclick;
 }
-
 
